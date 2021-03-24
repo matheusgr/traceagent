@@ -4,7 +4,7 @@ import java.lang.instrument.Instrumentation;
 
 public class TraceAgent {
     public static void premain(String agentArgs, Instrumentation inst) {
-        AtmTransformer atmTransformer = new AtmTransformer(inst);
+        AtmTransformer atmTransformer = new AtmTransformer();
         inst.addTransformer(atmTransformer, true);
     }
 
