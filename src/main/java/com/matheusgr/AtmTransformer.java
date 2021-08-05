@@ -8,6 +8,7 @@ import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.LoaderClassPath;
 
 public class AtmTransformer implements ClassFileTransformer {
 
@@ -20,7 +21,7 @@ public class AtmTransformer implements ClassFileTransformer {
     System.out.println("CLASS: " + className);
     try {
       ClassPool cp = ClassPool.getDefault();
-      cp.insertClassPath(".");
+      cp.insertClassPath(new LoaderClassPath(loader));
       CtClass cc = cp.get(className.replaceAll("/", "."));
       for (CtMethod m : cc.getMethods()) {
         if (m.getLongName().startsWith("java.")) {
