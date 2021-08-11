@@ -7,8 +7,10 @@ import java.security.ProtectionDomain;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
+import javassist.Modifier;
 
 public class AtmTransformer implements ClassFileTransformer {
 
@@ -39,6 +41,7 @@ public class AtmTransformer implements ClassFileTransformer {
       ClassPool cp = ClassPool.getDefault();
       cp.insertClassPath(new LoaderClassPath(loader));
       CtClass cc = cp.get(className.replaceAll("/", "."));
+      addIdField(cc);
       for (CtMethod m : cc.getMethods()) {
         // Ignore methods that are not overloaded from ignored packages. Example: java.lang.Object.wait.
         if (this.ignoreClass(m.getLongName())) {
@@ -54,12 +57,17 @@ public class AtmTransformer implements ClassFileTransformer {
     }
   }
 
-  private void addMethodOperation(String className, CtClass cc, CtMethod m)
+  private void addIdField(CtClass cc) throws CannotCompileException {
+	cc.addField(new CtField(CtClass.doubleType, "traceObjectId", cc), "Math.random()");	
+}
+
+private void addMethodOperation(String className, CtClass cc, CtMethod m)
       throws CannotCompileException, IOException {
     m.addLocalVariable("traceAgentStartTime", CtClass.longType);
-    m.insertBefore("System.out.println(\"[START] " + m.getLongName() + "\");");
+    String id = Modifier.isStatic(m.getModifiers()) ? "\"static\"" : "traceObjectId";
+    m.insertBefore("System.out.println(" + id + " + \" [START] " + m.getLongName() + "\");");   	
     m.insertBefore("traceAgentStartTime = System.currentTimeMillis();");
-    m.insertAfter("System.out.println(\"[END] " + m.getLongName() + " time: " + "\" + (System.currentTimeMillis() - traceAgentStartTime) + \" ms!\");");
+    m.insertAfter("System.out.println(" + id + " + \" [END] " + m.getLongName() + " time: " + "\" + (System.currentTimeMillis() - traceAgentStartTime) + \" ms!\");");
   }
 
 }
