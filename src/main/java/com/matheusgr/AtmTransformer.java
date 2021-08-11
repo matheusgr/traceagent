@@ -12,10 +12,26 @@ import javassist.LoaderClassPath;
 
 public class AtmTransformer implements ClassFileTransformer {
 
+  private TraceConfig traceConfig;
+
+  public AtmTransformer(TraceConfig traceConfig) {
+    this.traceConfig = traceConfig;
+  }
+
+  public boolean ignoreClass(String className) {
+    className = className.replaceAll("/", ".");
+    for (String pkg : this.traceConfig.ignoredPackages()) {
+      if (className.startsWith(pkg)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
       ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-    if (className.startsWith("java/") || className.startsWith("sun/") || className.startsWith("jdk/")) {
+    if (this.ignoreClass(className)) {
       return null;
     }
     System.out.println("CLASS: " + className);
@@ -24,7 +40,8 @@ public class AtmTransformer implements ClassFileTransformer {
       cp.insertClassPath(new LoaderClassPath(loader));
       CtClass cc = cp.get(className.replaceAll("/", "."));
       for (CtMethod m : cc.getMethods()) {
-        if (m.getLongName().startsWith("java.")) {
+        // Ignore methods that are not overloaded from ignored packages. Example: java.lang.Object.wait.
+        if (this.ignoreClass(m.getLongName())) {
           continue;
         }
         addMethodOperation(className, cc, m);
@@ -39,12 +56,10 @@ public class AtmTransformer implements ClassFileTransformer {
 
   private void addMethodOperation(String className, CtClass cc, CtMethod m)
       throws CannotCompileException, IOException {
-
     m.addLocalVariable("traceAgentStartTime", CtClass.longType);
-
     m.insertBefore("System.out.println(\"[START] " + m.getLongName() + "\");");
     m.insertBefore("traceAgentStartTime = System.currentTimeMillis();");
-
     m.insertAfter("System.out.println(\"[END] " + m.getLongName() + " time: " + "\" + (System.currentTimeMillis() - traceAgentStartTime) + \" ms!\");");
   }
+
 }
