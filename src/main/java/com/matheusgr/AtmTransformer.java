@@ -39,20 +39,12 @@ public class AtmTransformer implements ClassFileTransformer {
 
   private void addMethodOperation(String className, CtClass cc, CtMethod m)
       throws CannotCompileException, IOException {
+
+    m.addLocalVariable("traceAgentStartTime", CtClass.longType);
+
     m.insertBefore("System.out.println(\"[START] " + m.getLongName() + "\");");
-    m.addLocalVariable("startTime", CtClass.longType);
-    m.insertBefore("startTime = System.currentTimeMillis();");
+    m.insertBefore("traceAgentStartTime = System.currentTimeMillis();");
 
-    StringBuilder endBlock = new StringBuilder();
-
-    m.addLocalVariable("endTime", CtClass.longType);
-    m.addLocalVariable("opTime", CtClass.longType);
-    endBlock.append("endTime = System.currentTimeMillis();");
-    endBlock.append("opTime = (endTime-startTime)/1000;");
-
-    endBlock.append(
-        "System.out.println(\"[END] " + m.getLongName() + " time:" + "\" + opTime + \" seconds!\");");
-
-    m.insertAfter(endBlock.toString());
+    m.insertAfter("System.out.println(\"[END] " + m.getLongName() + " time: " + "\" + (System.currentTimeMillis() - traceAgentStartTime) + \" ms!\");");
   }
 }
