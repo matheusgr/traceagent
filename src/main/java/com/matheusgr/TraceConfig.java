@@ -23,4 +23,10 @@ public class TraceConfig {
 		return this.ignoredPackages;
 	}
 
+    public void configurePackages(String pkgs) {
+		for (String pkg : pkgs.split(",")) {
+			this.ignoredPackages.add(pkg);
+		}
+    }
+
 }
