@@ -41,14 +41,20 @@ public class AtmTransformer implements ClassFileTransformer {
 			ClassPool cp = ClassPool.getDefault();
 			cp.insertClassPath(new LoaderClassPath(loader));
 			CtClass cc = cp.get(className.replaceAll("/", "."));
-			addIdField(cc);
+			boolean hasField = false;
 			for (CtMethod m : cc.getMethods()) {
 				// Ignore methods that are not overloaded from ignored packages. Example:
 				// java.lang.Object.wait.
 				if (this.ignoreClass(m.getLongName())) {
 					continue;
 				}
-				addMethodOperation(className, cc, m);
+				if (!m.isEmpty()) {
+					if (!hasField) {
+						addIdField(cc);
+					}
+					hasField = true;
+					addMethodOperation(className, cc, m);
+				}
 			}
 			cc.detach();
 			return cc.toBytecode();
@@ -68,8 +74,8 @@ public class AtmTransformer implements ClassFileTransformer {
 		String id = Modifier.isStatic(m.getModifiers()) ? "\"static\"" : "traceObjectId";
 		m.insertBefore("System.out.println(" + id + " + \" [START] " + m.getLongName() + "\");");
 		m.insertBefore("traceAgentStartTime = System.currentTimeMillis();");
-		m.insertAfter("System.out.println(" + id + " + \" [END] " + m.getLongName() + " time: "
-				+ "\" + (System.currentTimeMillis() - traceAgentStartTime) + \" ms!\");");
+		m.insertAfter("System.out.println(" + id + " + \" [END] " + m.getLongName()
+				+ " \" + (System.currentTimeMillis() - traceAgentStartTime));");
 	}
 
 }
