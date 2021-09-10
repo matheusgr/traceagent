@@ -10,6 +10,9 @@ import org.apache.commons.cli.ParseException;
 
 public class TraceAgent {
 	public static void premain(String agentArgs, Instrumentation inst) throws ParseException {
+		if (agentArgs == null) {
+			agentArgs = "";
+		}
 		TraceConfig traceConfig = new TraceConfig();
 
 		Options options = new Options();
