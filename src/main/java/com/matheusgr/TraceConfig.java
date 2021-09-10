@@ -1,31 +1,38 @@
 package com.matheusgr;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class TraceConfig {
 
-	private Map<String, String> cfg;
-	private Set<String> ignoredPackages;
+	private Set<String> excludedPackages;
+	private Set<String> includedPackages;
 
 	public TraceConfig() {
-		this.ignoredPackages = new HashSet<>();
-		this.cfg = new HashMap<>();
-		this.cfg.put("ignoredPkgs", "java.,sun.,jdk.");
-		for (String pkg : cfg.get("ignoredPkgs").split(",")) {
-			this.ignoredPackages.add(pkg);
+		this.excludedPackages = new HashSet<>();
+		this.includedPackages = new HashSet<>();
+		for (String pkg : "java.,sun.,jdk.".split(",")) {
+			this.excludedPackages.add(pkg);
 		}
 	}
 
-	public Set<String> ignoredPackages() {
-		return this.ignoredPackages;
+	public Set<String> excludedPackages() {
+		return this.excludedPackages;
 	}
 
-    public void configurePackages(String pkgs) {
+	public Set<String> includedPackages() {
+		return this.includedPackages;
+	}
+
+    public void configureExcludedPackages(String pkgs) {
 		for (String pkg : pkgs.split(",")) {
-			this.ignoredPackages.add(pkg);
+			this.excludedPackages.add(pkg);
+		}
+    }
+
+	public void configureIncludedPackages(String pkgs) {
+		for (String pkg : pkgs.split(",")) {
+			this.includedPackages.add(pkg);
 		}
     }
 

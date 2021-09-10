@@ -3,6 +3,7 @@ package com.matheusgr;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
+import java.util.Collection;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -22,7 +23,16 @@ public class AtmTransformer implements ClassFileTransformer {
 
 	public boolean ignoreClass(String className) {
 		className = className.replaceAll("/", ".");
-		for (String pkg : this.traceConfig.ignoredPackages()) {
+		Collection<String> includedPackages = this.traceConfig.includedPackages();
+		if (!includedPackages.isEmpty()) {
+			for (String pkg : includedPackages) {
+				if (className.startsWith(pkg)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		for (String pkg : this.traceConfig.excludedPackages()) {
 			if (className.startsWith(pkg)) {
 				return true;
 			}

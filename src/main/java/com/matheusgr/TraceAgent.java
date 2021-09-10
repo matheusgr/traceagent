@@ -17,13 +17,22 @@ public class TraceAgent {
 
 		Options options = new Options();
 		options.addOption("e", true, "exclude packages separated by comma");
-		
+		options.addOption("i", true, "set  packages to be evaluated separated by comma");
+
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, agentArgs.split(" "));
 
+		if (cmd.hasOption("e") && cmd.hasOption("i")) {
+			System.err.println("Cannot set -e and -i parameters at same time.");
+			System.exit(1);
+		}
 		if (cmd.hasOption("e")) {
 			String packages = cmd.getOptionValue("e");
-			traceConfig.configurePackages(packages);
+			traceConfig.configureExcludedPackages(packages);
+		}
+		if (cmd.hasOption("i")) {
+			String packages = cmd.getOptionValue("i");
+			traceConfig.configureIncludedPackages(packages);
 		}
 
 		AtmTransformer atmTransformer = new AtmTransformer(traceConfig);
