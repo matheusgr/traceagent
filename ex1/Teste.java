@@ -10,7 +10,7 @@ public class Teste {
 
     public void main(String[] args) {
         
-        Scanner sc = new Scanner(System.in);
+        Scanner sc = new Scanner("0.01\n0.02");
         System.out.println("Digite um valor: ");
         double valor = sc.nextFloat();
         int valor2 = 10;
