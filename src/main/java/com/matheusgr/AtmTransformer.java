@@ -46,7 +46,6 @@ public class AtmTransformer implements ClassFileTransformer {
 		if (this.ignoreClass(className)) {
 			return null;
 		}
-		System.out.println("CLASS: " + className);
 		try {
 			ClassPool cp = ClassPool.getDefault();
 			cp.insertClassPath(new LoaderClassPath(loader));
@@ -82,9 +81,9 @@ public class AtmTransformer implements ClassFileTransformer {
 			throws CannotCompileException, IOException {
 		m.addLocalVariable("traceAgentStartTime", CtClass.longType);
 		String id = Modifier.isStatic(m.getModifiers()) ? "\"static\"" : "traceObjectId";
-		m.insertBefore("System.out.println(" + id + " + \" [START] " + m.getLongName() + "\");");
+		m.insertBefore("System.out.println(" + "\"[TRACEAGENT] \" + " + id + " + \" [START] " + m.getLongName() + "\");");
 		m.insertBefore("traceAgentStartTime = System.currentTimeMillis();");
-		m.insertAfter("System.out.println(" + id + " + \" [END] " + m.getLongName()
+		m.insertAfter("System.out.println("  + "\"[TRACEAGENT] \" + " + id + " + \" [END] " + m.getLongName()
 				+ " \" + (System.currentTimeMillis() - traceAgentStartTime));");
 	}
 
