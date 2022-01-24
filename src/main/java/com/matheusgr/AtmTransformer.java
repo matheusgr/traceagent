@@ -1,6 +1,5 @@
 package com.matheusgr;
 
-import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.security.ProtectionDomain;
 import java.util.Collection;
@@ -8,7 +7,6 @@ import java.util.Collection;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtField;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
 import javassist.Modifier;
@@ -22,7 +20,7 @@ public class AtmTransformer implements ClassFileTransformer {
 	}
 
 	public boolean ignoreClass(String className) {
-		className = className.replaceAll("/", ".");
+		className = className.replace("/", ".");
 		Collection<String> includedPackages = this.traceConfig.includedPackages();
 		if (!includedPackages.isEmpty()) {
 			for (String pkg : includedPackages) {
@@ -49,8 +47,7 @@ public class AtmTransformer implements ClassFileTransformer {
 		try {
 			ClassPool cp = ClassPool.getDefault();
 			cp.insertClassPath(new LoaderClassPath(loader));
-			CtClass cc = cp.get(className.replaceAll("/", "."));
-			boolean hasField = false;
+			CtClass cc = cp.get(className.replace("/", "."));
 			for (CtMethod m : cc.getMethods()) {
 				// Ignore methods that are not overloaded from ignored packages. Example:
 				// java.lang.Object.wait.
@@ -58,11 +55,7 @@ public class AtmTransformer implements ClassFileTransformer {
 					continue;
 				}
 				if (!m.isEmpty()) {
-					if (!hasField) {
-						addIdField(cc);
-					}
-					hasField = true;
-					addMethodOperation(className, cc, m);
+					addMethodOperation(m);
 				}
 			}
 			cc.detach();
@@ -73,14 +66,10 @@ public class AtmTransformer implements ClassFileTransformer {
 		}
 	}
 
-	private void addIdField(CtClass cc) throws CannotCompileException {
-		cc.addField(new CtField(CtClass.doubleType, "traceObjectId", cc), "Math.random()");
-	}
-
-	private void addMethodOperation(String className, CtClass cc, CtMethod m)
-			throws CannotCompileException, IOException {
+	private void addMethodOperation(CtMethod m)
+			throws CannotCompileException {
 		m.addLocalVariable("traceAgentStartTime", CtClass.longType);
-		String id = Modifier.isStatic(m.getModifiers()) ? "\"static\"" : "traceObjectId";
+		String id = Modifier.isStatic(m.getModifiers()) ? "\"static\"" : "System.identityHashCode(this)";
 		m.insertBefore("System.out.println(" + "\"[TRACEAGENT] \" + " + id + " + \" [START] " + m.getLongName() + "\");");
 		m.insertBefore("traceAgentStartTime = System.currentTimeMillis();");
 		m.insertAfter("System.out.println("  + "\"[TRACEAGENT] \" + " + id + " + \" [END] " + m.getLongName()
