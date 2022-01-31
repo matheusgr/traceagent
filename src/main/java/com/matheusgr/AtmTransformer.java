@@ -68,12 +68,10 @@ public class AtmTransformer implements ClassFileTransformer {
 
 	private void addMethodOperation(CtMethod m)
 			throws CannotCompileException {
-		m.addLocalVariable("traceAgentStartTime", CtClass.longType);
 		String id = Modifier.isStatic(m.getModifiers()) ? "\"static\"" : "System.identityHashCode(this)";
-		m.insertBefore("System.out.println(" + "\"[TRACEAGENT] \" + " + id + " + \" [START] " + m.getLongName() + "\");");
-		m.insertBefore("traceAgentStartTime = System.currentTimeMillis();");
-		m.insertAfter("System.out.println("  + "\"[TRACEAGENT] \" + " + id + " + \" [END] " + m.getLongName()
-				+ " \" + (System.currentTimeMillis() - traceAgentStartTime));");
+		String msgTemplate = "System.out.println(" + "\"[TRACEAGENT] \" + " + id + " + \" [%s] " + m.getLongName() + " \" + System.currentTimeMillis());";
+		m.insertBefore(msgTemplate.formatted("START"));
+		m.insertAfter(msgTemplate.formatted("END"), true);
 	}
 
 }
