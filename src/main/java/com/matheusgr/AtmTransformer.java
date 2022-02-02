@@ -70,8 +70,8 @@ public class AtmTransformer implements ClassFileTransformer {
 			throws CannotCompileException {
 		String id = Modifier.isStatic(m.getModifiers()) ? "\"static\"" : "System.identityHashCode(this)";
 		String msgTemplate = "System.out.println(" + "\"[TRACEAGENT] \" + " + id + " + \" [%s] " + m.getLongName() + " \" + System.currentTimeMillis());";
-		m.insertBefore(msgTemplate.formatted("START"));
-		m.insertAfter(msgTemplate.formatted("END"), true);
+		m.insertBefore(String.format(msgTemplate, "START"));
+		m.insertAfter(String.format(msgTemplate, "END"), true);
 	}
 
 }
